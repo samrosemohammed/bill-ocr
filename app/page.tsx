@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 export default function Home() {
@@ -24,9 +25,9 @@ export default function Home() {
     <div>
       <form onSubmit={handleSubmit}>
         <input type="file" name="file" accept="image/*" required />
-        <button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading}>
           {loading ? "Uploading..." : "Upload"}
-        </button>
+        </Button>
       </form>
 
       {url && <img src={url} alt="Uploaded" width={300} />}

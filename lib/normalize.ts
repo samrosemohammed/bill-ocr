@@ -94,7 +94,7 @@ export function normalizeDate(value: string | null): {
   const day = Number(match[3]);
 
   try {
-    if (year >= 2000 && year <= 2099) {
+    if (year >= 2060 && year <= 2099) {
       // BS date
       if (month < 1 || month > 12 || day < 1 || day > 32) {
         return { bs: null, ad: null };
@@ -117,7 +117,7 @@ export function normalizeDate(value: string | null): {
       return { bs, ad };
     }
 
-    if (year >= 1900 && year <= 2100) {
+    if (year >= 1990 && year <= 2059) {
       // AD date
       const ad = new Date(Date.UTC(year, month - 1, day));
 
