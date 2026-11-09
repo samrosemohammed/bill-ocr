@@ -1,36 +1,12 @@
-"use client";
-
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import Link from "next/link";
 
 export default function Home() {
-  const [url, setUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-
-    const formData = new FormData(e.currentTarget);
-    const res = await fetch("/api/bills", { method: "POST", body: formData });
-    const data = await res.json();
-    console.log("Response:", data);
-
-    setLoading(false);
-    if (res.ok) setUrl(data.url);
-    else alert(data.error);
-  };
-
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <input type="file" name="file" accept="image/*" required />
-        <Button type="submit" disabled={loading}>
-          {loading ? "Uploading..." : "Upload"}
-        </Button>
-      </form>
-
-      {url && <img src={url} alt="Uploaded" width={300} />}
+    <div className="container max-w-7xl mx-auto py-4">
+      <h1>Landing Page Comming Soon!!</h1>
+      <Link href="/bills" className="underline">
+        View Bills
+      </Link>
     </div>
   );
 }

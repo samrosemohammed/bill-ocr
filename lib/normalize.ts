@@ -100,20 +100,18 @@ export function normalizeDate(value: string | null): {
         return { bs: null, ad: null };
       }
 
-      const ad = new NepaliDate(year, month - 1, day).toJsDate();
+      const local = new NepaliDate(year, month - 1, day).toJsDate();
+      if (Number.isNaN(local.getTime())) return { bs: null, ad: null };
 
-      if (Number.isNaN(ad.getTime())) {
-        return { bs: null, ad: null };
-      }
-
-      // Round-trip check prevents silently accepting invalid BS dates.
-      const converted = new NepaliDate(ad).format("YYYY-MM-DD");
+      // Round-trip check prevents silently accepting invalid BS dates
       const bs = `${year}-${pad(month)}-${pad(day)}`;
-
-      if (converted !== bs) {
+      if (new NepaliDate(local).format("YYYY-MM-DD") !== bs) {
         return { bs: null, ad: null };
       }
-
+      // Store the calendar day as UTC midnight so it never shifts with timezone
+      const ad = new Date(
+        Date.UTC(local.getFullYear(), local.getMonth(), local.getDate()),
+      );
       return { bs, ad };
     }
 
@@ -130,8 +128,9 @@ export function normalizeDate(value: string | null): {
         return { bs: null, ad: null };
       }
 
-      const bs = new NepaliDate(ad).format("YYYY-MM-DD");
-
+      const bs = new NepaliDate(new Date(year, month - 1, day)).format(
+        "YYYY-MM-DD",
+      );
       return { bs, ad };
     }
   } catch {
