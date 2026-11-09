@@ -129,14 +129,14 @@
                 }
               },
               "vendorName": {
-                "nullable": false,
+                "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
               "vendorPan": {
-                "nullable": false,
+                "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -432,12 +432,12 @@
                 "vendorName": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
-                  "nullable": false
+                  "nullable": true
                 },
                 "vendorPan": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
-                  "nullable": false
+                  "nullable": true
                 }
               },
               "foreignKeys": [],
@@ -554,7 +554,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "40cca7309c6ee0b0bf1c6ef5ee3fb8e1b5f288c414ac4e48f5dc828895bfb496"
+    "storageHash": "d57476000e2a362c2e1b2c623e7df0e78654aed37f097217ebc5dd8edfa5dbf8"
   },
   "capabilities": {
     "postgres": {
