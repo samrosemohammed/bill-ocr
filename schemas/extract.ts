@@ -1,25 +1,22 @@
 import { z } from "zod";
 
-const str = z.string().trim().nullable().catch(null);
-
 export const RawBillSchema = z.object({
-  vendor_name: str,
-  vendor_pan: str,
-  bill_number: str,
-  bill_date: str, // exactly as printed, BS or AD
-  items: z
-    .array(
-      z.object({
-        name: z.string().trim().min(1),
-        qty: str,
-        rate: str,
-        amount: str,
-      }),
-    )
-    .catch([]),
-  subtotal: str,
-  vat: str,
-  total: str,
+  vendor_name: z.string().nullable(),
+  vendor_pan: z.string().nullable(),
+  bill_number: z.string().nullable(),
+  bill_date: z.string().nullable(),
+  subtotal: z.string().nullable(),
+  vat: z.string().nullable(),
+  total: z.string().nullable(),
+
+  items: z.array(
+    z.object({
+      name: z.string(),
+      qty: z.string().nullable(),
+      rate: z.string().nullable(),
+      amount: z.string().nullable(),
+    }),
+  ),
 });
 
 export type RawBill = z.infer<typeof RawBillSchema>;

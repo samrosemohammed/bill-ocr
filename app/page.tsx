@@ -13,6 +13,7 @@ export default function Home() {
     const formData = new FormData(e.currentTarget);
     const res = await fetch("/api/bills", { method: "POST", body: formData });
     const data = await res.json();
+    console.log("Response:", data);
 
     setLoading(false);
     if (res.ok) setUrl(data.url);

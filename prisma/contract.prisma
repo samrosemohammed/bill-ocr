@@ -11,6 +11,7 @@ namespace public {
     imageUrl String
     vendorName String?
     vendorPan  String?
+    billNumber String?
     billDateBs String?
     billDateAd DateTime?
     subTotal NumericString(12, 2)?
