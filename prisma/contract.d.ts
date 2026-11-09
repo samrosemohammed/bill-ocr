@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'40cca7309c6ee0b0bf1c6ef5ee3fb8e1b5f288c414ac4e48f5dc828895bfb496'>;
+  StorageHashBase<'0008d09bcd2ab8c5da01257fb1ff1479c936f668b9b939aa1c2a1e0d039ccf9d'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -331,6 +331,7 @@ export namespace Models {
   export type public_Bill = {
     billDateAd: FieldOutputTypes['public']['Bill']['billDateAd'];
     billDateBs: FieldOutputTypes['public']['Bill']['billDateBs'];
+    billNumber: FieldOutputTypes['public']['Bill']['billNumber'];
     createdAt: FieldOutputTypes['public']['Bill']['createdAt'];
     id: FieldOutputTypes['public']['Bill']['id'];
     imageUrl: FieldOutputTypes['public']['Bill']['imageUrl'];
@@ -391,6 +392,12 @@ type ContractBase = Omit<
                   readonly many: false;
                 };
                 readonly billDateBs: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly billNumber: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: true;
@@ -460,13 +467,13 @@ type ContractBase = Omit<
                 readonly vendorName: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
+                  readonly nullable: true;
                   readonly many: false;
                 };
                 readonly vendorPan: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
+                  readonly nullable: true;
                   readonly many: false;
                 };
               };
@@ -584,6 +591,10 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly billNumber: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly createdAt: {
                 readonly nullable: false;
                 readonly type: {
@@ -633,11 +644,11 @@ type ContractBase = Omit<
                 };
               };
               readonly vendorName: {
-                readonly nullable: false;
+                readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly vendorPan: {
-                readonly nullable: false;
+                readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
             };
@@ -660,6 +671,7 @@ type ContractBase = Omit<
               readonly fields: {
                 readonly billDateAd: { readonly column: 'billDateAd' };
                 readonly billDateBs: { readonly column: 'billDateBs' };
+                readonly billNumber: { readonly column: 'billNumber' };
                 readonly createdAt: { readonly column: 'created_at' };
                 readonly id: { readonly column: 'id' };
                 readonly imageUrl: { readonly column: 'imageUrl' };

@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 export default function Home() {
@@ -13,6 +14,7 @@ export default function Home() {
     const formData = new FormData(e.currentTarget);
     const res = await fetch("/api/bills", { method: "POST", body: formData });
     const data = await res.json();
+    console.log("Response:", data);
 
     setLoading(false);
     if (res.ok) setUrl(data.url);
@@ -23,9 +25,9 @@ export default function Home() {
     <div>
       <form onSubmit={handleSubmit}>
         <input type="file" name="file" accept="image/*" required />
-        <button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading}>
           {loading ? "Uploading..." : "Upload"}
-        </button>
+        </Button>
       </form>
 
       {url && <img src={url} alt="Uploaded" width={300} />}
