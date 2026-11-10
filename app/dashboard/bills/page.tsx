@@ -94,7 +94,7 @@ export default async function BillsPage({
 
   // Preserve query parameters
   const href = (status: string, page = 1, pageSize = limit) =>
-    `/bills?status=${status}&page=${page}&limit=${pageSize}`;
+    `/dashboard/bills?status=${status}&page=${page}&limit=${pageSize}`;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-4 md:p-6">
@@ -215,7 +215,9 @@ export default async function BillsPage({
                     <TableCell className="text-right">
                       {tab === "pending" ? (
                         <Button variant="link" size="sm">
-                          <Link href={`/bills/${bill.id}/review`}>Review</Link>
+                          <Link href={`/dashboard/bills/${bill.id}/review`}>
+                            Review
+                          </Link>
                         </Button>
                       ) : (
                         <Button variant="link" size="sm">
