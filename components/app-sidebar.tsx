@@ -16,6 +16,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { Brand } from "./brand";
 
 const navigation = [
   { title: "Overview", href: "/dashboard", icon: Home },
@@ -35,9 +36,7 @@ export function AppSidebar() {
               size="lg"
               className="data-[active=true]:bg-sidebar-accent"
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <FileText className="size-4" />
-              </div>
+              <Brand />
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">Bill OCR</span>
                 <span className="truncate text-xs text-muted-foreground">

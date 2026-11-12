@@ -82,16 +82,18 @@ export const Export = () => {
               <Label>Bill date from (AD)</Label>
 
               <Popover>
-                <PopoverTrigger>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    <CalendarDays className="mr-2 size-4" />
-                    {from ? format(from, "dd MMM yyyy") : "Select start date"}
-                  </Button>
-                </PopoverTrigger>
+                <PopoverTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                    >
+                      <CalendarDays className="mr-2 size-4" />
+                      {from ? format(from, "dd MMM yyyy") : "Select start date"}
+                    </Button>
+                  }
+                ></PopoverTrigger>
 
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
@@ -122,16 +124,18 @@ export const Export = () => {
               <Label>Bill date to (AD)</Label>
 
               <Popover>
-                <PopoverTrigger>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    <CalendarDays className="mr-2 size-4" />
-                    {to ? format(to, "dd MMM yyyy") : "Select end date"}
-                  </Button>
-                </PopoverTrigger>
+                <PopoverTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                    >
+                      <CalendarDays className="mr-2 size-4" />
+                      {to ? format(to, "dd MMM yyyy") : "Select end date"}
+                    </Button>
+                  }
+                ></PopoverTrigger>
 
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar

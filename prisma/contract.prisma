@@ -1,42 +1,119 @@
 // use prisma-8
 // Contract inferred from the live database schema. Edit as needed, then run `prisma contract emit`.
 
+
 enum BillStatus {
   PENDING_REVIEW
   CONFIRMED
 }
+
 namespace public {
-  model Bill {
-    id Int @id(map: "bill_pkey") @default(autoincrement())
-    imageUrl String
-    vendorName String?
-    vendorPan  String?
-    billNumber String?
-    billDateBs String?
-    billDateAd DateTime?
-    subTotal NumericString(12, 2)?
-    vat NumericString(12, 2)?
-    total NumericString(12, 2)?
-    status BillStatus @default(PENDING_REVIEW)
-    rawOcrText String?
-    items BillItem[]
-    createdAt DateTime(precision: 6) @default(now()) @map("created_at")
-    @@rls
-  }
 
-  model BillItem {
-    id Int @id(map: "bill_item_pkey") @default(autoincrement())
-    billId Int
-    itemName String
-    quantity NumericString(12, 2)?
-    unitPrice NumericString(12, 2)?
-    totalPrice NumericString(12, 2)?
-    bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
-  }
+model User {
+  id               String    @id
+  name             String
+  email            String
+  emailVerified    Boolean   @default(false)
+  image            String?
+  createdAt     TimestamptzTemporal(6)  @default(now())
+  updatedAt     TimestamptzTemporal(6)  @onCreate(now()) @onUpdate(now())
 
-  policy_select bill {
-    target = Bill
-    roles = [public]
-    using = sql`status = 'CONFIRMED'`
-  }
+  twoFactorEnabled Boolean?  @default(false)
+  sessions         Session[]
+  accounts         Account[]
+  twoFactors       TwoFactor[]
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt TimestamptzTemporal(3)
+  token     String
+  createdAt     TimestamptzTemporal(6)  @default(now())
+  updatedAt     TimestamptzTemporal(6)  @onCreate(now()) @onUpdate(now())
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([token])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  TimestamptzTemporal(3)?
+  refreshTokenExpiresAt TimestamptzTemporal(3)?
+  scope                 String?
+  password              String?
+  createdAt     TimestamptzTemporal(6)  @default(now())
+  updatedAt     TimestamptzTemporal(6)  @onCreate(now()) @onUpdate(now())
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  TimestamptzTemporal(3)
+  createdAt     TimestamptzTemporal(6)  @default(now())
+  updatedAt     TimestamptzTemporal(6)  @onCreate(now()) @onUpdate(now())
+  @@map("verification")
+}
+
+model TwoFactor {
+  id                      String    @id
+  secret                  String
+  backupCodes             String
+  userId                  String
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verified                Boolean?  @default(true)
+  failedVerificationCount Int?
+  lockedUntil              TimestamptzTemporal(3)?
+  @@map("two_factor")
+}
+
+model Bill {
+  id Int @id(map: "bill_pkey") @default(autoincrement())
+  imageUrl String
+  vendorName String?
+  vendorPan  String?
+  billNumber String?
+  billDateBs String?
+  billDateAd DateTime?
+  subTotal NumericString(12, 2)?
+  vat NumericString(12, 2)?
+  total NumericString(12, 2)?
+  status BillStatus @default(PENDING_REVIEW)
+  rawOcrText String?
+  items BillItem[]
+  createdAt     TimestamptzJsDate(6)  @default(now())
+  @@rls
+  @@map("bill")
+}
+
+model BillItem {
+  id Int @id(map: "bill_item_pkey") @default(autoincrement())
+  billId Int
+  itemName String
+  quantity NumericString(12, 2)?
+  unitPrice NumericString(12, 2)?
+  totalPrice NumericString(12, 2)?
+  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
+  @@map("bill_item")
+}
+
+policy_select bill {
+  target = Bill
+  roles = [public]
+  using = sql`status = 'CONFIRMED'`
+}
+
 }
