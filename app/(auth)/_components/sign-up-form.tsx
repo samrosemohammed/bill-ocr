@@ -11,11 +11,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { PasswordInput } from "@/components/password-input";
 
 export function SignUpForm() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [sentTo, setSentTo] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -81,25 +84,32 @@ export function SignUpForm() {
           />
         </Field>
         <Field>
-          <FieldLabel htmlFor="password">Password</FieldLabel>
-          <Input
+          <FieldLabel htmlFor="password">New password</FieldLabel>
+
+          <PasswordInput
             id="password"
             name="password"
-            type="password"
             autoComplete="new-password"
+            placeholder="Enter your new password"
             minLength={8}
             required
+            showPassword={showPassword}
+            onToggle={() => setShowPassword((prev) => !prev)}
           />
+
           <FieldDescription>At least 8 characters.</FieldDescription>
         </Field>
         <Field>
-          <FieldLabel htmlFor="confirm">Confirm password</FieldLabel>
-          <Input
+          <FieldLabel htmlFor="confirm">Confirm new password</FieldLabel>
+
+          <PasswordInput
             id="confirm"
             name="confirm"
-            type="password"
             autoComplete="new-password"
+            placeholder="Confirm your new password"
             required
+            showPassword={showConfirmPassword}
+            onToggle={() => setShowConfirmPassword((prev) => !prev)}
           />
         </Field>
 

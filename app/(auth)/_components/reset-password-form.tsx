@@ -11,12 +11,15 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
+import { PasswordInput } from "@/components/password-input";
 
 export function ResetPasswordForm({ initialEmail }: { initialEmail: string }) {
   const router = useRouter();
   const [email, setEmail] = useState(initialEmail);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -76,24 +79,31 @@ export function ResetPasswordForm({ initialEmail }: { initialEmail: string }) {
         </Field>
         <Field>
           <FieldLabel htmlFor="password">New password</FieldLabel>
-          <Input
+
+          <PasswordInput
             id="password"
             name="password"
-            type="password"
             autoComplete="new-password"
+            placeholder="Enter your new password"
             minLength={8}
             required
+            showPassword={showPassword}
+            onToggle={() => setShowPassword((prev) => !prev)}
           />
+
           <FieldDescription>At least 8 characters.</FieldDescription>
         </Field>
         <Field>
           <FieldLabel htmlFor="confirm">Confirm new password</FieldLabel>
-          <Input
+
+          <PasswordInput
             id="confirm"
             name="confirm"
-            type="password"
             autoComplete="new-password"
+            placeholder="Confirm your new password"
             required
+            showPassword={showConfirmPassword}
+            onToggle={() => setShowConfirmPassword((prev) => !prev)}
           />
         </Field>
 

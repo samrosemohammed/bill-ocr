@@ -17,13 +17,14 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Brand } from "./brand";
+import { MenuUser, UserMenu } from "./user-menu";
 
 const navigation = [
   { title: "Overview", href: "/dashboard", icon: Home },
   { title: "Bills", href: "/dashboard/bills", icon: ReceiptText },
 ];
 
-export function AppSidebar() {
+export async function AppSidebar({ user }: { user: MenuUser }) {
   const pathname = usePathname();
 
   return (
@@ -77,9 +78,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <p className="px-2 text-xs text-sidebar-foreground/60">
-          Keep your bills organized.
-        </p>
+        <UserMenu user={user} variant="sidebar" />
       </SidebarFooter>
     </Sidebar>
   );

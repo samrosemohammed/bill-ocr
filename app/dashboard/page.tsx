@@ -1,4 +1,3 @@
-import { Logout } from "@/components/logout";
 import Link from "next/link";
 
 const DashboardPage = async () => {
@@ -8,7 +7,6 @@ const DashboardPage = async () => {
       <Link href="/dashboard/bills" className="underline">
         View Bills
       </Link>
-      <Logout />
     </div>
   );
 };
