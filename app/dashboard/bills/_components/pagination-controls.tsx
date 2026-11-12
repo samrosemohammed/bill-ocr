@@ -111,7 +111,7 @@ export function PaginationControls({
           max={totalPages}
           value={pageInput}
           onChange={(event) => setPageInput(event.target.value)}
-          className="h-9 w-[65px] text-center"
+          className="h-9 w-16.25 text-center"
           aria-label="Go to page"
         />
 
