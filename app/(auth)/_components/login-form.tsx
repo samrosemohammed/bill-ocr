@@ -1,8 +1,6 @@
 "use client";
-
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -11,9 +9,10 @@ import {
   FieldLabel,
   FieldSeparator,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import { Brand } from "@/components/brand";
+import { PasswordInput } from "@/components/password-input";
 import { authClient } from "@/lib/auth-client";
+import { Input } from "@/components/ui/input";
 
 export const LoginForm = ({
   className,
@@ -21,6 +20,7 @@ export const LoginForm = ({
 }: React.ComponentProps<"div">) => {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -106,13 +106,15 @@ export const LoginForm = ({
                 Forgot your password?
               </a>
             </div>
-            <Input
+
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               placeholder="Enter your password"
               autoComplete="current-password"
               required
+              showPassword={showPassword}
+              onToggle={() => setShowPassword((prev) => !prev)}
             />
           </Field>
 
