@@ -9,6 +9,10 @@ import { UserMenu } from "@/components/user-menu";
 import { requireUser } from "@/lib/session";
 import { PropsWithChildren } from "react";
 
+// Authentication reads request headers, so this user-specific layout is allowed
+// to wait for request-time data instead of being validated as instant.
+export const instant = false;
+
 const DahboardLayout = async ({ children }: PropsWithChildren) => {
   const user = await requireUser();
 

@@ -1,14 +1,26 @@
-import Link from "next/link";
+import { Suspense } from "react";
+import { DashboardContent } from "./_components/dashboard-content";
 
-const DashboardPage = async () => {
+const DashboardSkeleton = () => {
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-4 md:p-6">
-      <h1>Overview Page Comming Soon!!</h1>
-      <Link href="/dashboard/bills" className="underline">
-        View Bills
-      </Link>
+    <div className="mx-auto max-w-7xl space-y-8 p-4 md:p-8 animate-pulse">
+      <div className="h-10 w-64 rounded bg-muted" />
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-32 rounded-xl bg-muted" />
+        ))}
+      </div>
+
+      <div className="h-80 rounded-xl bg-muted" />
     </div>
   );
 };
 
-export default DashboardPage;
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DashboardContent />
+    </Suspense>
+  );
+}

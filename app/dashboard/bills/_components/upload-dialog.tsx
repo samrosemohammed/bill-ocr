@@ -123,7 +123,7 @@ export const UploadDialog = () => {
       }
 
       setOpen(false);
-      router.push(`/bills/${data.id}/review`);
+      router.push(`/dashboard/bills/${data.id}/review`);
     } catch {
       if (!ac.signal.aborted) {
         setError("Network error. Please check your connection and try again.");
