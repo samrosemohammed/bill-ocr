@@ -24,7 +24,7 @@ const navigation = [
   { title: "Bills", href: "/dashboard/bills", icon: ReceiptText },
 ];
 
-export async function AppSidebar({ user }: { user: MenuUser }) {
+export function AppSidebar({ user }: { user: MenuUser }) {
   const pathname = usePathname();
 
   return (

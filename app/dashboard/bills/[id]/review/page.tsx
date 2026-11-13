@@ -3,6 +3,14 @@ import { notFound } from "next/navigation";
 import { db } from "@/prisma/db";
 import type { ReviewInput } from "@/schemas/review";
 import ReviewForm from "../../_components/review-form";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Review bill",
+  description: "Review and confirm the extracted details for a bill.",
+};
 
 export default async function ReviewPage({
   params,
@@ -44,5 +52,19 @@ export default async function ReviewPage({
       })),
   };
 
-  return <ReviewForm id={bill.id} imageUrl={bill.imageUrl} initial={initial} />;
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto max-w-6xl space-y-6 p-4">
+          <Skeleton className="h-10 w-64" />
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Skeleton className="h-[600px]" />
+            <Skeleton className="h-[600px]" />
+          </div>
+        </div>
+      }
+    >
+      <ReviewForm id={bill.id} imageUrl={bill.imageUrl} initial={initial} />
+    </Suspense>
+  );
 }
