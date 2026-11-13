@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -165,11 +166,13 @@ export default function ReviewForm({
 
           <CardContent>
             <ScrollArea className="h-[60vh] rounded-md border bg-muted/30 lg:h-[calc(100vh-16rem)]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={imageUrl}
                 alt="Uploaded bill"
-                className="h-auto w-full"
+                width={1200}
+                height={1600}
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="h-auto w-full object-contain"
               />
 
               <ScrollBar orientation="vertical" />

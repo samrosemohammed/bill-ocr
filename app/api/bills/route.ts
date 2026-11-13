@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { mkdir, writeFile, unlink } from "fs/promises";
-import path from "path";
 import { randomUUID } from "crypto";
+import { UTApi, UTFile } from "uploadthing/server";
 
 import { extractBill } from "@/lib/extract";
 import { normalizeBill } from "@/lib/normalize";
 import { db } from "@/prisma/db";
+import { getSession } from "@/lib/session";
 
 const MAX_SIZE = 5 * 1024 * 1024;
 
@@ -39,7 +39,12 @@ const num = (n: number | null): string | null => {
 type Stage = "upload" | "storage" | "ocr" | "normalization" | "database";
 
 export const POST = async (req: NextRequest) => {
-  let filePath: string | null = null;
+  if (!(await getSession())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const utapi = new UTApi();
+  let uploadedFileKey: string | null = null;
   let dbCommitted = false;
   let stage: Stage = "upload";
 
@@ -113,17 +118,19 @@ export const POST = async (req: NextRequest) => {
     // 6. Generate filename
     const fileName = `${Date.now()}-${randomUUID()}${EXT_BY_MIME[file.type]}`;
 
-    const uploadDir = path.join(process.cwd(), "public", "upload-file");
-
-    filePath = path.join(uploadDir, fileName);
-
-    // 7. Save image
+    // 7. Save image to UploadThing
     stage = "storage";
 
-    await mkdir(uploadDir, { recursive: true });
-    await writeFile(filePath, buffer, { flag: "wx" });
+    const uploadResult = await utapi.uploadFiles(
+      new UTFile([buffer], fileName, { type: file.type }),
+    );
 
-    const url = `/upload-file/${fileName}`;
+    if (uploadResult.error) {
+      throw new Error(uploadResult.error.message);
+    }
+
+    uploadedFileKey = uploadResult.data.key;
+    const url = uploadResult.data.ufsUrl;
 
     // 8. Extract raw bill
     stage = "ocr";
@@ -179,9 +186,9 @@ export const POST = async (req: NextRequest) => {
     console.error(`Bill upload failed at ${stage}:`, error);
 
     // 12. Cleanup on failure
-    if (filePath && !dbCommitted) {
-      await unlink(filePath).catch((cleanupError) => {
-        console.error("File cleanup failed:", cleanupError);
+    if (uploadedFileKey && !dbCommitted) {
+      await utapi.deleteFiles(uploadedFileKey).catch((cleanupError) => {
+        console.error("UploadThing cleanup failed:", cleanupError);
       });
     }
 
