@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, DM_Sans, Outfit } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { TanstackQueryProvider } from "@/context/tanstack-query-provider";
 
 const outfitHeading = Outfit({
   subsets: ["latin"],
@@ -43,7 +44,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         outfitHeading.variable,
       )}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <TanstackQueryProvider>{children}</TanstackQueryProvider>
+      </body>
     </html>
   );
 }

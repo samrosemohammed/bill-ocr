@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowUpRight,
   CheckCircle2,
@@ -25,10 +28,33 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { db } from "@/prisma/db";
-import { requireUser } from "@/lib/session";
 import { UploadDialog } from "../bills/_components/upload-dialog";
-import { connection } from "next/server";
+
+type RecentBill = {
+  id: number;
+  vendorName: string | null;
+  status: "PENDING_REVIEW" | "CONFIRMED";
+  total: string | null;
+  createdAt: string;
+};
+
+type DashboardResponse = {
+  user: { name: string };
+  pending: number;
+  confirmed: number;
+  recentBills: RecentBill[];
+};
+
+async function fetchDashboard(): Promise<DashboardResponse> {
+  const response = await fetch("/api/dashboard");
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error ?? "Could not load dashboard");
+  }
+
+  return data;
+}
 
 const formatMoney = (value: string | null) =>
   value === null
@@ -38,41 +64,35 @@ const formatMoney = (value: string | null) =>
         maximumFractionDigits: 2,
       })}`;
 
-const formatDate = (date: Date) =>
-  date.toLocaleDateString("en-IN", {
+const formatDate = (date: string) =>
+  new Date(date).toLocaleDateString("en-IN", {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
 
-export const DashboardContent = async () => {
-  await connection();
-  const user = await requireUser();
+export const DashboardContent = () => {
+  const dashboardQuery = useQuery({
+    queryKey: ["dashboard"],
+    queryFn: fetchDashboard,
+  });
 
-  const [pending, confirmed, recentBills] = await Promise.all([
-    db.orm.public.Bill.where({
-      userId: user.id,
-      status: "PENDING_REVIEW",
-    }).aggregate(
-      (bill) => ({
-        count: bill.count(),
-      }),
-    ),
-    db.orm.public.Bill.where({
-      userId: user.id,
-      status: "CONFIRMED",
-    }).aggregate((bill) => ({
-      count: bill.count(),
-    })),
-    db.orm.public.Bill.where({ userId: user.id })
-      .orderBy([(bill) => bill.createdAt.desc(), (bill) => bill.id.desc()])
-      .limit(5)
-      .all(),
-  ]);
+  if (dashboardQuery.isPending) {
+    return <DashboardLoading />;
+  }
 
-  const total = pending.count + confirmed.count;
+  if (dashboardQuery.isError) {
+    return (
+      <div className="mx-auto max-w-7xl p-4 text-sm text-destructive md:p-8">
+        {dashboardQuery.error.message}
+      </div>
+    );
+  }
+
+  const { user, pending, confirmed, recentBills } = dashboardQuery.data;
+  const total = pending + confirmed;
   const reviewedPercentage =
-    total === 0 ? 0 : Math.round((confirmed.count / total) * 100);
+    total === 0 ? 0 : Math.round((confirmed / total) * 100);
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 p-4 md:p-8">
@@ -90,53 +110,19 @@ export const DashboardContent = async () => {
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Total bills</CardDescription>
-            <CardTitle className="text-3xl">
-              {total.toLocaleString("en-IN")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <FileText className="size-4" />
-              All uploaded records
-            </div>
-          </CardContent>
-        </Card>
-
+        <MetricCard title="Total bills" value={total} icon={<FileText className="size-4" />} description="All uploaded records" />
         <Card>
           <CardHeader className="pb-3">
             <CardDescription>Pending review</CardDescription>
-            <CardTitle className="text-3xl">
-              {pending.count.toLocaleString("en-IN")}
-            </CardTitle>
+            <CardTitle className="text-3xl">{pending.toLocaleString("en-IN")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <Link
-              href="/dashboard/bills?status=pending"
-              className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-            >
+            <Link href="/dashboard/bills?status=pending" className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
               Review bills <ArrowUpRight className="size-4" />
             </Link>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Confirmed bills</CardDescription>
-            <CardTitle className="text-3xl">
-              {confirmed.count.toLocaleString("en-IN")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <CheckCircle2 className="size-4 text-emerald-600" />
-              Ready for export
-            </div>
-          </CardContent>
-        </Card>
-
+        <MetricCard title="Confirmed bills" value={confirmed} icon={<CheckCircle2 className="size-4 text-emerald-600" />} description="Ready for export" />
         <Card>
           <CardHeader className="pb-3">
             <CardDescription>Review progress</CardDescription>
@@ -144,10 +130,7 @@ export const DashboardContent = async () => {
           </CardHeader>
           <CardContent>
             <div className="h-2 overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full rounded-full bg-primary transition-all"
-                style={{ width: `${reviewedPercentage}%` }}
-              />
+              <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${reviewedPercentage}%` }} />
             </div>
           </CardContent>
         </Card>
@@ -160,12 +143,7 @@ export const DashboardContent = async () => {
               <CardTitle>Recent bills</CardTitle>
               <CardDescription>Your latest uploaded records.</CardDescription>
             </div>
-            <Link
-              href="/dashboard/bills"
-              className={buttonVariants({ variant: "outline", size: "sm" })}
-            >
-              View all
-            </Link>
+            <Link href="/dashboard/bills" className={buttonVariants({ variant: "outline", size: "sm" })}>View all</Link>
           </CardHeader>
           <CardContent className="px-0">
             {recentBills.length === 0 ? (
@@ -173,51 +151,19 @@ export const DashboardContent = async () => {
                 <ReceiptText className="size-10 text-muted-foreground/50" />
                 <div>
                   <p className="font-medium">No bills uploaded yet</p>
-                  <p className="text-sm text-muted-foreground">
-                    Upload your first bill to start tracking records.
-                  </p>
+                  <p className="text-sm text-muted-foreground">Upload your first bill to start tracking records.</p>
                 </div>
               </div>
             ) : (
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Vendor</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
-                  </TableRow>
-                </TableHeader>
+                <TableHeader><TableRow><TableHead>Vendor</TableHead><TableHead>Date</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
                 <TableBody>
                   {recentBills.map((bill) => (
                     <TableRow key={bill.id}>
-                      <TableCell className="font-medium">
-                        <Link
-                          href={`/dashboard/bills/${bill.id}/review`}
-                          className="hover:underline"
-                        >
-                          {bill.vendorName || "Unknown vendor"}
-                        </Link>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {formatDate(bill.createdAt)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            bill.status === "CONFIRMED"
-                              ? "default"
-                              : "secondary"
-                          }
-                        >
-                          {bill.status === "CONFIRMED"
-                            ? "Confirmed"
-                            : "Pending"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {formatMoney(bill.total)}
-                      </TableCell>
+                      <TableCell className="font-medium"><Link href={`/dashboard/bills/${bill.id}/review`} className="hover:underline">{bill.vendorName || "Unknown vendor"}</Link></TableCell>
+                      <TableCell className="text-muted-foreground">{formatDate(bill.createdAt)}</TableCell>
+                      <TableCell><Badge variant={bill.status === "CONFIRMED" ? "default" : "secondary"}>{bill.status === "CONFIRMED" ? "Confirmed" : "Pending"}</Badge></TableCell>
+                      <TableCell className="text-right tabular-nums">{formatMoney(bill.total)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -227,53 +173,47 @@ export const DashboardContent = async () => {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Quick actions</CardTitle>
-            <CardDescription>Common tasks for your workspace.</CardDescription>
-          </CardHeader>
+          <CardHeader><CardTitle>Quick actions</CardTitle><CardDescription>Common tasks for your workspace.</CardDescription></CardHeader>
           <CardContent className="grid gap-3">
             <UploadDialog />
-            {/* <Button
-              variant="outline"
-              className="justify-start"
-              render={<Link href="/dashboard/bills?status=pending" />}
-            >
-              <Clock3 className="size-4" />
-              Review pending bills
-            </Button> */}
-            <Link
-              href="/dashboard/bills?status=pending"
-              className={buttonVariants({
-                variant: "outline",
-                className: "justify-start",
-              })}
-            >
-              <Clock3 className="size-4" />
-              Review pending bills
-            </Link>
-            <Link
-              href="/dashboard/bills?status=confirmed"
-              className={buttonVariants({
-                variant: "outline",
-                className: "justify-start",
-              })}
-            >
-              <CheckCircle2 className="size-4" />
-              Browse confirmed bills
-            </Link>
-            <Link
-              href="/dashboard/bills"
-              className={buttonVariants({
-                variant: "outline",
-                className: "justify-start",
-              })}
-            >
-              <Upload className="size-4" />
-              Manage all bills
-            </Link>
+            <Link href="/dashboard/bills?status=pending" className={buttonVariants({ variant: "outline", className: "justify-start" })}><Clock3 className="size-4" />Review pending bills</Link>
+            <Link href="/dashboard/bills?status=confirmed" className={buttonVariants({ variant: "outline", className: "justify-start" })}><CheckCircle2 className="size-4" />Browse confirmed bills</Link>
+            <Link href="/dashboard/bills" className={buttonVariants({ variant: "outline", className: "justify-start" })}><Upload className="size-4" />Manage all bills</Link>
           </CardContent>
         </Card>
       </section>
     </div>
   );
 };
+
+function MetricCard({
+  title,
+  value,
+  icon,
+  description,
+}: {
+  title: string;
+  value: number;
+  icon: React.ReactNode;
+  description: string;
+}) {
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardDescription>{title}</CardDescription>
+        <CardTitle className="text-3xl">{value.toLocaleString("en-IN")}</CardTitle>
+      </CardHeader>
+      <CardContent><div className="flex items-center gap-2 text-sm text-muted-foreground">{icon}{description}</div></CardContent>
+    </Card>
+  );
+}
+
+function DashboardLoading() {
+  return (
+    <div className="mx-auto max-w-7xl animate-pulse space-y-8 p-4 md:p-8">
+      <div className="h-10 w-64 rounded bg-muted" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-32 rounded-xl bg-muted" />)}</div>
+      <div className="h-80 rounded-xl bg-muted" />
+    </div>
+  );
+}

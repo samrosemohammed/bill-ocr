@@ -38,6 +38,61 @@ const num = (n: number | null): string | null => {
 
 type Stage = "upload" | "storage" | "ocr" | "normalization" | "database";
 
+const PAGE_SIZES = [10, 20, 50, 100];
+const DEFAULT_PAGE_SIZE = 20;
+
+export const GET = async (req: NextRequest) => {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const params = req.nextUrl.searchParams;
+  const status = params.get("status") === "confirmed" ? "CONFIRMED" : "PENDING_REVIEW";
+  const requestedLimit = Number.parseInt(params.get("limit") ?? "", 10);
+  const limit = PAGE_SIZES.includes(requestedLimit)
+    ? requestedLimit
+    : DEFAULT_PAGE_SIZE;
+
+  const [pending, confirmed] = await Promise.all([
+    db.orm.public.Bill.where({
+      userId: session.user.id,
+      status: "PENDING_REVIEW",
+    }).aggregate((bill) => ({ count: bill.count() })),
+    db.orm.public.Bill.where({
+      userId: session.user.id,
+      status: "CONFIRMED",
+    }).aggregate((bill) => ({ count: bill.count() })),
+  ]);
+
+  const total = status === "CONFIRMED" ? confirmed.count : pending.count;
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const requestedPage = Number.parseInt(params.get("page") ?? "1", 10);
+  const page = Math.min(
+    Math.max(Number.isFinite(requestedPage) ? requestedPage : 1, 1),
+    totalPages,
+  );
+
+  const bills = await db.orm.public.Bill.where({
+    userId: session.user.id,
+    status,
+  })
+    .orderBy([(bill) => bill.createdAt.desc(), (bill) => bill.id.desc()])
+    .limit(limit)
+    .offset((page - 1) * limit)
+    .all();
+
+  return NextResponse.json({
+    pending: pending.count,
+    confirmed: confirmed.count,
+    page,
+    limit,
+    total,
+    totalPages,
+    bills,
+  });
+};
+
 export const POST = async (req: NextRequest) => {
   const session = await getSession();
   if (!session) {
