@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -77,10 +78,10 @@ export const LoginForm = ({
             <h1 className="text-xl font-bold">Welcome to Bill OCR.</h1>
 
             <FieldDescription>
-              Don't have an account?{" "}
-              <a href="/sign-up" className="underline">
+              Do not have an account?{" "}
+              <Link href="/sign-up" className="underline">
                 Sign up
-              </a>
+              </Link>
             </FieldDescription>
           </div>
 
@@ -99,12 +100,12 @@ export const LoginForm = ({
           <Field>
             <div className="flex items-center">
               <FieldLabel htmlFor="password">Password</FieldLabel>
-              <a
+              <Link
                 href="/forgot-password"
                 className="ml-auto text-sm underline-offset-4 hover:underline"
               >
                 Forgot your password?
-              </a>
+              </Link>
             </div>
 
             <PasswordInput
@@ -170,13 +171,13 @@ export const LoginForm = ({
 
       <FieldDescription className="px-6 text-center">
         By clicking continue, you agree to our{" "}
-        <a href="/terms" className="underline">
+        <Link href="/terms" className="underline">
           Terms of Service
-        </a>{" "}
+        </Link>{" "}
         and{" "}
-        <a href="/privacy" className="underline">
+        <Link href="/privacy" className="underline">
           Privacy Policy
-        </a>
+        </Link>
         .
       </FieldDescription>
     </div>
