@@ -39,7 +39,8 @@ const num = (n: number | null): string | null => {
 type Stage = "upload" | "storage" | "ocr" | "normalization" | "database";
 
 export const POST = async (req: NextRequest) => {
-  if (!(await getSession())) {
+  const session = await getSession();
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -146,6 +147,7 @@ export const POST = async (req: NextRequest) => {
     stage = "database";
 
     const saved = await db.orm.public.Bill.create({
+      userId: session.user.id,
       imageUrl: url,
       vendorName: bill.vendorName,
       vendorPan: bill.vendorPan,

@@ -22,6 +22,7 @@ model User {
   sessions         Session[]
   accounts         Account[]
   twoFactors       TwoFactor[]
+  bills            Bill[]
   @@unique([email])
   @@map("user")
 }
@@ -82,6 +83,8 @@ model TwoFactor {
 
 model Bill {
   id Int @id(map: "bill_pkey") @default(autoincrement())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   imageUrl String
   vendorName String?
   vendorPan  String?
@@ -95,6 +98,7 @@ model Bill {
   rawOcrText String?
   items BillItem[]
   createdAt     TimestamptzJsDate(6)  @default(now())
+  @@index([userId])
   @@rls
   @@map("bill")
 }

@@ -18,6 +18,7 @@ import { UploadDialog } from "./upload-dialog";
 import { PaginationControls } from "./pagination-controls";
 import { Export } from "./export";
 import { connection } from "next/server";
+import { requireUser } from "@/lib/session";
 
 type SearchParams = {
   status?: string;
@@ -42,6 +43,7 @@ export const BillContent = async ({
 }) => {
   await connection();
 
+  const user = await requireUser();
   const sp = await searchParams;
 
   // Status
@@ -59,12 +61,14 @@ export const BillContent = async ({
   // Total records
   const [pending, confirmed] = await Promise.all([
     db.orm.public.Bill.where({
+      userId: user.id,
       status: "PENDING_REVIEW",
     }).aggregate((a) => ({
       n: a.count(),
     })),
 
     db.orm.public.Bill.where({
+      userId: user.id,
       status: "CONFIRMED",
     }).aggregate((a) => ({
       n: a.count(),
@@ -84,7 +88,7 @@ export const BillContent = async ({
   );
 
   // Fetch bills
-  const bills = await db.orm.public.Bill.where({ status })
+  const bills = await db.orm.public.Bill.where({ userId: user.id, status })
     .orderBy([(b) => b.createdAt.desc(), (b) => b.id.desc()])
     .limit(limit)
     .offset((page - 1) * limit)

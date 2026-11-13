@@ -131,7 +131,7 @@ export const LoginForm = ({
             </Button>
           </Field>
 
-          <FieldSeparator>Or continue with</FieldSeparator>
+          {/* <FieldSeparator>Or continue with</FieldSeparator>
 
           <Field className="grid gap-4 sm:grid-cols-2">
             <Button
@@ -165,7 +165,7 @@ export const LoginForm = ({
               </svg>
               Continue with Google
             </Button>
-          </Field>
+          </Field> */}
         </FieldGroup>
       </form>
 

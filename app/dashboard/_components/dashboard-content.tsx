@@ -50,18 +50,22 @@ export const DashboardContent = async () => {
   const user = await requireUser();
 
   const [pending, confirmed, recentBills] = await Promise.all([
-    db.orm.public.Bill.where({ status: "PENDING_REVIEW" }).aggregate(
+    db.orm.public.Bill.where({
+      userId: user.id,
+      status: "PENDING_REVIEW",
+    }).aggregate(
       (bill) => ({
         count: bill.count(),
       }),
     ),
-    db.orm.public.Bill.where({ status: "CONFIRMED" }).aggregate((bill) => ({
+    db.orm.public.Bill.where({
+      userId: user.id,
+      status: "CONFIRMED",
+    }).aggregate((bill) => ({
       count: bill.count(),
     })),
-    db.orm.public.Bill.orderBy([
-      (bill) => bill.createdAt.desc(),
-      (bill) => bill.id.desc(),
-    ])
+    db.orm.public.Bill.where({ userId: user.id })
+      .orderBy([(bill) => bill.createdAt.desc(), (bill) => bill.id.desc()])
       .limit(5)
       .all(),
   ]);
