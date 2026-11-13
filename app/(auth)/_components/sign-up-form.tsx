@@ -56,7 +56,7 @@ export function SignUpForm() {
       <div className="space-y-2 rounded-lg border bg-card p-4 text-center text-sm">
         <p className="font-medium">Check your email</p>
         <p className="text-muted-foreground">
-          We sent a verification link to {sentTo}. Open it to activate your
+          We sent a verification code to {sentTo}. Enter it to activate your
           account, then sign in.
         </p>
         <a href="/login" className="underline">
