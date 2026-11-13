@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,9 +57,9 @@ export default function ReviewForm({
   initial: ReviewInput;
 }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [form, setForm] = useState<ReviewInput>(initial);
-  const [saving, setSaving] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
   const { errors, warnings } = useMemo(() => parseReviewForm(form), [form]);
@@ -90,35 +91,42 @@ export default function ReviewForm({
     }));
   };
 
-  const confirm = async () => {
-    if (saving || errors.length > 0) return;
-
-    setSaving(true);
-    setServerError(null);
-
-    try {
+  const confirmMutation = useMutation({
+    mutationFn: async (values: ReviewInput) => {
       const res = await fetch(`/api/bills/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(values),
       });
 
       const data = await res.json().catch(() => null);
 
       if (!res.ok) {
-        setServerError(data?.error ?? "Could not confirm this bill");
-        return;
+        throw new Error(data?.error ?? "Could not confirm this bill");
       }
 
+      return data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["bills"] });
+      await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      await queryClient.invalidateQueries({ queryKey: ["bill", String(id)] });
       router.push("/dashboard/bills?status=confirmed");
       router.refresh();
-    } catch {
-      setServerError("Network error. Please try again.");
-    } finally {
-      setSaving(false);
-    }
+    },
+    onError: (confirmError) => {
+      setServerError(confirmError.message);
+    },
+  });
+
+  const saving = confirmMutation.isPending;
+
+  const confirm = () => {
+    if (saving || errors.length > 0) return;
+    setServerError(null);
+    confirmMutation.mutate(form);
   };
 
   return (

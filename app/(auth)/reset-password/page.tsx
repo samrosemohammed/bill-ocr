@@ -1,5 +1,5 @@
-import { AuthShell } from "../_components/auth-shell";
-import { ResetPasswordForm } from "../_components/reset-password-form";
+import { Suspense } from "react";
+import { ResetPasswordContent } from "../_components/reset-password-content";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -7,18 +7,10 @@ export const metadata: Metadata = {
   description: "Choose a new password for your Bill OCR account.",
 };
 
-export default async function ResetPasswordPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ email?: string }>;
-}) {
-  const { email } = await searchParams;
+export default function ResetPasswordPage() {
   return (
-    <AuthShell
-      title="Reset your password"
-      description="Enter the code from your email and choose a new password."
-    >
-      <ResetPasswordForm initialEmail={email ?? ""} />
-    </AuthShell>
+    <Suspense>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }

@@ -1,7 +1,5 @@
-import { buttonVariants } from "@/components/ui/button";
-import { getSession } from "@/lib/session";
-import { AuthShell } from "../_components/auth-shell";
-import { VerifyEmailForm } from "../_components/verify-email-form";
+import { Suspense } from "react";
+import { VerifyEmailContent } from "../_components/verify-email-content";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -9,18 +7,10 @@ export const metadata: Metadata = {
   description: "Verify your email address to finish setting up Bill OCR.",
 };
 
-export default async function VerifyEmailPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ email?: string }>;
-}) {
-  const { email } = await searchParams;
+export default function VerifyEmailPage() {
   return (
-    <AuthShell
-      title="Verify your email"
-      description="Enter the 6-digit code we sent to your email."
-    >
-      <VerifyEmailForm initialEmail={email ?? ""} />
-    </AuthShell>
+    <Suspense>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }

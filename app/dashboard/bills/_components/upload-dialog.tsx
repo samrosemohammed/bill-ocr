@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useDropzone, type FileRejection } from "react-dropzone";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CircleAlert, LoaderCircle, ReceiptText, Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -51,11 +52,11 @@ const Divider = () => {
 
 export const UploadDialog = () => {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const controller = useRef<AbortController | null>(null);
@@ -81,28 +82,13 @@ export const UploadDialog = () => {
     }
   }, []);
 
-  const { getRootProps, getInputProps, isDragActive, isDragReject } =
-    useDropzone({
-      onDrop,
-      accept: ACCEPT,
-      maxSize: MAX_SIZE,
-      multiple: false,
-      disabled: uploading,
-    });
+  const uploadMutation = useMutation({
+    mutationFn: async (selectedFile: File) => {
+      const ac = new AbortController();
+      controller.current = ac;
 
-  // Upload
-  const submit = async () => {
-    if (!file || uploading) return;
-
-    setUploading(true);
-    setError(null);
-
-    const ac = new AbortController();
-    controller.current = ac;
-
-    try {
       const body = new FormData();
-      body.append("file", file);
+      body.append("file", selectedFile);
 
       const res = await fetch("/api/bills", {
         method: "POST",
@@ -113,29 +99,49 @@ export const UploadDialog = () => {
       const data = await res.json().catch(() => null);
 
       if (!res.ok) {
-        setError(data?.error ?? "Upload failed. Please try again.");
-        setUploading(false);
-        return;
+        throw new Error(data?.error ?? "Upload failed. Please try again.");
       }
 
+      return data as { id: number };
+    },
+    onSuccess: async (data) => {
+      await queryClient.invalidateQueries({ queryKey: ["bills"] });
+      await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       setOpen(false);
       router.push(`/dashboard/bills/${data.id}/review`);
-    } catch {
-      if (!ac.signal.aborted) {
-        setError("Network error. Please check your connection and try again.");
+    },
+    onError: (uploadError) => {
+      if (uploadError.name !== "AbortError") {
+        setError(uploadError.message);
       }
-
-      setUploading(false);
-    } finally {
+    },
+    onSettled: () => {
       controller.current = null;
-    }
+    },
+  });
+
+  const uploading = uploadMutation.isPending;
+
+  const { getRootProps, getInputProps, isDragActive, isDragReject } =
+    useDropzone({
+      onDrop,
+      accept: ACCEPT,
+      maxSize: MAX_SIZE,
+      multiple: false,
+      disabled: uploading,
+    });
+
+  const submit = () => {
+    if (!file || uploading) return;
+    setError(null);
+    uploadMutation.mutate(file);
   };
 
   // Cancel upload
   const cancel = () => {
     controller.current?.abort();
     controller.current = null;
-    setUploading(false);
+    uploadMutation.reset();
   };
 
   // Dialog state

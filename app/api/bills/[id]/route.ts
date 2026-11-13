@@ -6,6 +6,31 @@ import { getSession } from "@/lib/session";
 
 class NotPendingError extends Error {}
 
+export const GET = async (
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) => {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const id = Number((await params).id);
+  if (!Number.isInteger(id) || id < 1) {
+    return NextResponse.json({ error: "Invalid bill id" }, { status: 400 });
+  }
+
+  const bill = await db.orm.public.Bill.include("items")
+    .where({ id, userId: session.user.id })
+    .first();
+
+  if (!bill) {
+    return NextResponse.json({ error: "Bill not found" }, { status: 404 });
+  }
+
+  return NextResponse.json({ bill });
+};
+
 export const PATCH = async (
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
