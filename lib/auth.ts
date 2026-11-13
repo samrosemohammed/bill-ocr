@@ -16,7 +16,7 @@ export const auth = betterAuth({
     requireEmailVerification: true,
     revokeSessionsOnPasswordReset: true,
     onExistingUserSignUp: async ({ user }) => {
-      void sendEmail({
+      await sendEmail({
         to: user.email,
         subject: "Sign-up attempt with your email",
         text: "Someone tried to create a Bill OCR account with your email. If it was you, sign in instead (or reset your password). If not, ignore this email.",
@@ -62,8 +62,7 @@ export const auth = betterAuth({
       async sendVerificationOTP({ email, otp, type }) {
         if (type !== "email-verification" && type !== "forget-password") return;
 
-        // Not awaited on purpose, so response time doesn't reveal whether the email exists
-        void sendEmail({
+        await sendEmail({
           to: email,
           subject:
             type === "email-verification"
