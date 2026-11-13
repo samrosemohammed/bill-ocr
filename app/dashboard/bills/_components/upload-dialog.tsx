@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useDropzone, type FileRejection } from "react-dropzone";
 import { CircleAlert, LoaderCircle, ReceiptText, Upload } from "lucide-react";
 
@@ -59,18 +60,12 @@ export const UploadDialog = () => {
 
   const controller = useRef<AbortController | null>(null);
 
-  // Preview URL
+  // Preview URL cleanup
   useEffect(() => {
-    if (!file) {
-      setPreview(null);
-      return;
-    }
-
-    const url = URL.createObjectURL(file);
-    setPreview(url);
-
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
 
   // Dropzone
   const onDrop = useCallback((accepted: File[], rejected: FileRejection[]) => {
@@ -80,6 +75,7 @@ export const UploadDialog = () => {
     }
 
     if (accepted[0]) {
+      setPreview(URL.createObjectURL(accepted[0]));
       setFile(accepted[0]);
       setError(null);
     }
@@ -194,10 +190,12 @@ export const UploadDialog = () => {
               <input {...getInputProps()} />
 
               {preview ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={preview}
                   alt="Selected bill"
+                  width={800}
+                  height={1000}
+                  unoptimized
                   className="mx-auto max-h-64 w-auto rounded-md object-contain"
                 />
               ) : (
@@ -242,6 +240,7 @@ export const UploadDialog = () => {
                   size="sm"
                   onClick={() => {
                     setFile(null);
+                    setPreview(null);
                     setError(null);
                   }}
                 >
