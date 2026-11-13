@@ -314,6 +314,13 @@
                   }
                 }
               },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "vat": {
                 "nullable": true,
                 "type": {
@@ -355,6 +362,22 @@
                   "model": "BillItem",
                   "namespace": "public"
                 }
+              },
+              "user": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
               }
             },
             "storage": {
@@ -388,6 +411,9 @@
                 },
                 "total": {
                   "column": "total"
+                },
+                "userId": {
+                  "column": "userId"
                 },
                 "vat": {
                   "column": "vat"
@@ -802,6 +828,21 @@
                   "namespace": "public"
                 }
               },
+              "bills": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
+                },
+                "to": {
+                  "model": "Bill",
+                  "namespace": "public"
+                }
+              },
               "sessions": {
                 "cardinality": "1:N",
                 "on": {
@@ -1189,6 +1230,11 @@
                     "scale": 2
                   }
                 },
+                "userId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
                 "vat": {
                   "codecId": "pg/numeric@1",
                   "dataType": "pg/numeric",
@@ -1209,8 +1255,38 @@
                   "nullable": true
                 }
               },
-              "foreignKeys": [],
-              "indexes": [],
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "bill_userId_idx_a489d58a"
+                  },
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "bill"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "bill_userId_idx_a489d58a",
+                  "prefix": "bill_userId_idx",
+                  "unique": false
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -1639,7 +1715,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "7ab5bda4e71582450d35e5174e71897435d7297b1d4258cbed612be298686a2a"
+    "storageHash": "938ca31c59401ba03624e06b7930e0d92c5805e9ddcef6021834eb0e274e5b96"
   },
   "execution": {
     "executionHash": "dca2e42b5fddfefad26c3c0be9d30afb776a88f6fc807710d5713e0e004a2678",

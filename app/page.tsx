@@ -209,7 +209,7 @@ export default function Home() {
 
       <footer className="border-t">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between md:px-8">
-          <p>© {new Date().getFullYear()} Bill OCR. All rights reserved.</p>
+          <p>© 2026 Bill OCR. All rights reserved.</p>
           <div className="flex gap-4">
             <Link href="/terms" className="hover:text-foreground">
               Terms of Service

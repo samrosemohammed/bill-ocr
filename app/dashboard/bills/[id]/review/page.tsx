@@ -6,6 +6,7 @@ import ReviewForm from "../../_components/review-form";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Metadata } from "next";
+import { requireUser } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: "Review bill",
@@ -20,7 +21,10 @@ export default async function ReviewPage({
   const id = Number((await params).id);
   if (!Number.isInteger(id) || id < 1) notFound();
 
-  const bill = await db.orm.public.Bill.include("items").where({ id }).first();
+  const user = await requireUser();
+  const bill = await db.orm.public.Bill.include("items")
+    .where({ id, userId: user.id })
+    .first();
   if (!bill) notFound();
 
   if (bill.status === "CONFIRMED") {

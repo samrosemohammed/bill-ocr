@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/prisma/db";
 import { ReviewSchema } from "@/schemas/review";
 import { parseReviewForm, toNumeric } from "@/lib/review";
+import { getSession } from "@/lib/session";
 
 class NotPendingError extends Error {}
 
@@ -9,6 +10,11 @@ export const PATCH = async (
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) => {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const id = Number((await params).id);
   if (!Number.isInteger(id) || id < 1) {
     return NextResponse.json({ error: "Invalid bill id" }, { status: 400 });
@@ -29,6 +35,7 @@ export const PATCH = async (
       // Only a pending bill can be confirmed; this also stops double-confirming
       const updated = await tx.orm.public.Bill.where({
         id,
+        userId: session.user.id,
         status: "PENDING_REVIEW",
       }).update({
         vendorName: bill.vendorName,

@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'7ab5bda4e71582450d35e5174e71897435d7297b1d4258cbed612be298686a2a'>;
+  StorageHashBase<'938ca31c59401ba03624e06b7930e0d92c5805e9ddcef6021834eb0e274e5b96'>;
 export type ExecutionHash =
   ExecutionHashBase<'dca2e42b5fddfefad26c3c0be9d30afb776a88f6fc807710d5713e0e004a2678'>;
 export type ProfileHash =
@@ -357,11 +357,13 @@ export namespace Models {
     status: FieldOutputTypes['public']['Bill']['status'];
     subTotal: FieldOutputTypes['public']['Bill']['subTotal'];
     total: FieldOutputTypes['public']['Bill']['total'];
+    userId: FieldOutputTypes['public']['Bill']['userId'];
     vat: FieldOutputTypes['public']['Bill']['vat'];
     vendorName: FieldOutputTypes['public']['Bill']['vendorName'];
     vendorPan: FieldOutputTypes['public']['Bill']['vendorPan'];
     items: public_BillItem[];
-    readonly [RelationKeys]?: 'items';
+    user: public_User;
+    readonly [RelationKeys]?: 'items' | 'user';
   };
   export type public_BillItem = {
     billId: FieldOutputTypes['public']['BillItem']['billId'];
@@ -406,9 +408,10 @@ export namespace Models {
     twoFactorEnabled: FieldOutputTypes['public']['User']['twoFactorEnabled'];
     updatedAt: FieldOutputTypes['public']['User']['updatedAt'];
     accounts: public_Account[];
+    bills: public_Bill[];
     sessions: public_Session[];
     twoFactors: public_TwoFactor[];
-    readonly [RelationKeys]?: 'accounts' | 'sessions' | 'twoFactors';
+    readonly [RelationKeys]?: 'accounts' | 'bills' | 'sessions' | 'twoFactors';
   };
   export type public_Verification = {
     createdAt: FieldOutputTypes['public']['Verification']['createdAt'];
@@ -637,6 +640,12 @@ type ContractBase = Omit<
                   readonly typeParams: { readonly precision: 12; readonly scale: 2 };
                   readonly many: false;
                 };
+                readonly userId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
                 readonly vat: {
                   readonly dataType: 'pg/numeric';
                   readonly codecId: 'pg/numeric@1';
@@ -659,8 +668,28 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id']; readonly name: 'bill_pkey' };
               uniques: readonly [];
-              indexes: readonly [];
-              foreignKeys: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'bill_userId_idx_a489d58a';
+                  readonly prefix: 'bill_userId_idx';
+                  readonly columns: readonly ['userId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'bill';
+                    readonly columns: readonly ['userId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'user';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
             };
             readonly bill_item: {
               columns: {
@@ -1198,6 +1227,10 @@ type ContractBase = Omit<
                   readonly typeParams: { readonly precision: 12; readonly scale: 2 };
                 };
               };
+              readonly userId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly vat: {
                 readonly nullable: true;
                 readonly type: {
@@ -1227,6 +1260,15 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['billId'];
                 };
               };
+              readonly user: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['userId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
             };
             readonly storage: {
               readonly table: 'bill';
@@ -1242,6 +1284,7 @@ type ContractBase = Omit<
                 readonly status: { readonly column: 'status' };
                 readonly subTotal: { readonly column: 'subTotal' };
                 readonly total: { readonly column: 'total' };
+                readonly userId: { readonly column: 'userId' };
                 readonly vat: { readonly column: 'vat' };
                 readonly vendorName: { readonly column: 'vendorName' };
                 readonly vendorPan: { readonly column: 'vendorPan' };
@@ -1493,6 +1536,14 @@ type ContractBase = Omit<
                   readonly namespace: 'public' & NamespaceId;
                   readonly model: 'Account';
                 };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['userId'];
+                };
+              };
+              readonly bills: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Bill' };
                 readonly cardinality: '1:N';
                 readonly on: {
                   readonly localFields: readonly ['id'];

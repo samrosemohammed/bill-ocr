@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, all } from "@prisma/orm-postgres/orm-client";
 import { db } from "@/prisma/db";
+import { getSession } from "@/lib/session";
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -26,6 +27,11 @@ const row = (cells: (string | number | null | undefined)[]) =>
 const day = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : "");
 
 export const GET = async (req: NextRequest) => {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const sp = req.nextUrl.searchParams;
   const type = sp.get("type") === "items" ? "items" : "bills";
 
@@ -45,7 +51,7 @@ export const GET = async (req: NextRequest) => {
   }
 
   const bills = await db.orm.public.Bill.include("items")
-    .where({ status: "CONFIRMED" })
+    .where({ userId: session.user.id, status: "CONFIRMED" })
     .where((b) =>
       and(
         from ? b.billDateAd.gte(from) : all(),
