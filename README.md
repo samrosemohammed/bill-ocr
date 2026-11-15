@@ -2,7 +2,7 @@
 
 Turn photos of Nepali and English paper bills into structured data you can review and export.
 
-**Live demo:** https://bill.mohammedsamrose.com.np
+![Bill OCR screenshot](https://github.com/user-attachments/assets/271868a6-c505-42d0-be90-81399f0b8b94)
 
 ## Features
 
