@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import type { ReviewInput } from "@/schemas/review";
 import ReviewForm from "./review-form";
+import { ReviewSkeleton } from "./review-skeleton";
 
 type Bill = {
   id: number;
@@ -42,18 +43,11 @@ export default function ReviewContent({ id }: { id: string }) {
   const billQuery = useQuery({
     queryKey: ["bill", id],
     queryFn: () => fetchBill(id),
+    gcTime: 0, // always load fresh, so a confirmed bill never reappears as pending from cache
   });
 
   if (billQuery.isPending) {
-    return (
-      <div className="mx-auto max-w-6xl space-y-6 p-4">
-        <Skeleton className="h-10 w-64" />
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Skeleton className="h-[600px]" />
-          <Skeleton className="h-[600px]" />
-        </div>
-      </div>
-    );
+    return <ReviewSkeleton />;
   }
 
   if (billQuery.isError) {
